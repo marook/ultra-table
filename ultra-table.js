@@ -1,10 +1,10 @@
 (function(angular, document){
     var module = angular.module('ultra-table', []);
 
-    module.directive('ultraTable', function(){
+    module.directive('ultraTable', function($compile){
 
         /**
-         * Key is column id / value is cell template element.
+         * Key is column id / value is cell template jqlite elements.
          */
         var cellTemplates = {};
 
@@ -22,7 +22,7 @@
                 var columnId = child.getAttribute('column-id');
 
                 if(columnId){
-                    cellTemplates[columnId] = child;
+                    cellTemplates[columnId] = angular.element(child);
                 }
 
                 element.removeChild(child);
@@ -80,25 +80,31 @@
 
             for(var i = 0; i < scope.rows.length; ++i){
                 var row = scope.rows[i];
-                var tr = renderRow(row, scope);
-                
-                tbody.appendChild(tr);
+                appendRow(tbody, row, scope);
             }
         }
 
-        function renderRow(row, scope){
+        function appendRow(tbody, row, scope){
             var tr = document.createElement('tr');
+            tbody.appendChild(tr);
 
             for(var i = 0; i < scope.columns.length; ++i){
                 var column = scope.columns[i];
+                var columnTemplate = cellTemplates[column.id];
 
                 var td = document.createElement('td');
                 tr.appendChild(td);
 
-                td.appendChild(document.createTextNode(row[column.id]));
-            }
+                if(columnTemplate){
+                    var cellScope = scope.$new();
+                    cellScope.row = row;
 
-            return tr;
+                    var cellContent = columnTemplate.clone();
+                    td.appendChild(cellContent[0]);
+
+                    $compile(cellContent)(cellScope);
+                }
+            }
         }
 
         function empty(element){

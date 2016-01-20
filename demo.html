@@ -9,16 +9,17 @@
     <h1>ultra-table demo</h1>
 
     <ultra-table columnsDraggable="false" sort="sort" columns="columns" rows="rows">
-      <ut-cell column-id="name">
-        {{ row.name }}
+      <ut-cell column-id="firstName">
+        [[ {{ row.firstName }} ]]
       </ut-cell>
       <ut-cell column-id="birthday">
-        {{ row.birthday }}
+        {{ row.birthday | date:'short'}}
       </ut-cell>
     </ultra-table>
 
     <div>
       <button ng-click="shuffleColumnOrder()">Shuffle Columns</button>
+      <button ng-click="shuffleNames()">Shuffle Names</button>
     </div>
 
     <div>

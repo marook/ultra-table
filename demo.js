@@ -38,9 +38,19 @@
         ];
 
         $scope.shuffleColumnOrder = shuffleColumnOrder;
+        $scope.shuffleNames = shuffleNames;
 
         function shuffleColumnOrder(){
             shuffle($scope.columns);
+        }
+
+        function shuffleNames(){
+            for(var i = 0; i < $scope.rows.length; ++i){
+                var row = $scope.rows[i];
+                var firstName = row.firstName;
+
+                row.firstName = firstName.substring(1) + firstName.substring(0, 1);
+            }
         }
 
     });
