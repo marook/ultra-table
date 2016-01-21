@@ -103,9 +103,11 @@
             th.addEventListener('drop', onColumnDrop, false);
 
             function onColumnDragStart(e){
-                e.dataTransfer.setData('application/json', JSON.stringify({
+                var data = JSON.stringify({
                     columnId: columnId
-                }));
+                });
+
+                e.dataTransfer.setData('Text', data);
             }
 
             function onColumnDragOver(e){
@@ -131,7 +133,7 @@
                     e.preventDefault();
                 }
 
-                var dragData = JSON.parse(e.dataTransfer.getData('application/json'));
+                var dragData = JSON.parse(e.dataTransfer.getData('Text'));
 
                 scope.$apply(function(){
                     var dragColumnIndex = indexOfColumn(dragData.columnId);
