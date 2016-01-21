@@ -113,7 +113,9 @@
                     e.preventDefault();
                 }
 
-                applyDragStyling(this);
+                if(e.target.getBoundingClientRect){
+                    applyDragStyling(this, isLeftDrop(e));
+                }
 
                 return false;
             }
@@ -133,7 +135,7 @@
 
                 scope.$apply(function(){
                     var dragColumnIndex = indexOfColumn(dragData.columnId);
-                    var dropColumnIndex = indexOfColumn(columnId);
+                    var dropColumnIndex = indexOfColumn(columnId) + (isLeftDrop(e) ? 0 : 1);
 
                     if(dragColumnIndex === dropColumnIndex){
                         return;
@@ -161,12 +163,28 @@
 
         }
 
-        function applyDragStyling(th){
-            th.classList.add('ut-drop-column');
+        function isLeftDrop(e){
+            var targetBounding = e.target.getBoundingClientRect();
+            var cursorXOnTarget = e.clientX - targetBounding.left;
+            var relativeCursorXOnTarget = cursorXOnTarget / targetBounding.width;
+
+            return relativeCursorXOnTarget <= 0.5;
+        }
+
+        function applyDragStyling(th, left){
+            if(left){
+                th.classList.add('ut-drop-column-left');
+                th.classList.remove('ut-drop-column-right');
+            }
+            else{
+                th.classList.add('ut-drop-column-right'); 
+                th.classList.remove('ut-drop-column-left');
+           }
         }
 
         function resetDragStyling(th){
-            th.classList.remove('ut-drop-column');
+            th.classList.remove('ut-drop-column-left');
+            th.classList.remove('ut-drop-column-right');
         }
 
         function renderRows(tbody, scope){

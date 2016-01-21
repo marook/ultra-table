@@ -2,6 +2,14 @@ ultra-table th {
     cursor: default;
 }
 
-.ut-drop-column {
+ultra-table .left-indicator, ultra-table .right-indicator {
+    display: none;
+}
+
+ultra-table .ut-drop-column-left, ultra-table .ut-drop-column-right {
     background-color: #88ff88;
+}
+
+ultra-table .ut-drop-column-left .left-indicator, ultra-table .ut-drop-column-right .right-indicator {
+    display: inline;
 }
