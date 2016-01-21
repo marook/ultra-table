@@ -221,18 +221,17 @@
                  *
                  * [
                  *   {
-                 *     id: 'firstName',
+                 *     id: 'someColumnId',
+                 *   },
+                 *   {
+                 *     id: 'anotherColumnId'
                  *   }
                  * ]
                  */
                 columns: '=',
 
                 /**
-                 * [
-                 *   {
-                 *     firstName: 'Markus',
-                 *   }
-                 * ]
+                 * An array of rows.
                  */
                 rows: '='
                 
