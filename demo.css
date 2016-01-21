@@ -1,0 +1,7 @@
+ultra-table th {
+    cursor: default;
+}
+
+.ut-drop-column {
+    background-color: #88ff88;
+}

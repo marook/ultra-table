@@ -4,11 +4,6 @@
     ]);
 
     app.controller('MainController', function($scope){
-        $scope.sort = {
-            sortColumnId: 'firstName',
-            sortOrder: -1
-        };
-
         $scope.columns = [
             {
                 id: 'firstName',
@@ -34,6 +29,11 @@
                 firstName: 'Cristian',
                 birthday: new Date(1970, 1, 1),
                 favouriteFood: 'Salad'
+            },
+            {
+                firstName: 'Emanuell',
+                birthday: new Date(1990, 1, 1),
+                favouriteFood: 'Wraps'
             }
         ];
 

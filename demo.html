@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html ng-app="demo">
   <head>
+    <meta charset="UTF-8"/>
+    <title>ultra-table demo</title>
+    <link rel="stylesheet" href="demo.css" />
     <script src="node_modules/angular/angular.js"></script>
     <script src="ultra-table.js"></script>
     <script src="demo.js"></script>
@@ -8,13 +11,26 @@
   <body ng-controller="MainController">
     <h1>ultra-table demo</h1>
 
-    <ultra-table columnsDraggable="false" sort="sort" columns="columns" rows="rows">
-      <ut-cell column-id="firstName">
+    <ultra-table columns="columns" rows="rows">
+      <ut-th column-id="firstName">
+        FFFF First Name {{ 1 + 1 }}
+      </ut-th>
+      <ut-th column-id="birthday">
+        BBBB Brithday {{ 2 + 3 }}
+      </ut-th>
+      <ut-th column-id="favouriteFood">
+        FFOO Favourite Food {{ 3 + 4 }}
+      </ut-th>
+
+      <ut-td column-id="firstName">
         [[ {{ row.firstName }} ]]
-      </ut-cell>
-      <ut-cell column-id="birthday">
+      </ut-td>
+      <ut-td column-id="birthday">
         {{ row.birthday | date:'short'}}
-      </ut-cell>
+      </ut-td>
+      <ut-td column-id="favouriteFood">
+        {{ row.favouriteFood }}
+      </ut-td>
     </ultra-table>
 
     <div>
