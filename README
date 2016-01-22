@@ -12,13 +12,13 @@ Ultra table is an angular.js table component which supports drag & drop
 of columns.
 
 
----------------------------------------------------------
+------------------------------------------------------------------------
 Usage
 
 See demo.html and demo.js for an example.
 
 
----------------------------------------------------------
+------------------------------------------------------------------------
 License
 
 See COPYING for details.
