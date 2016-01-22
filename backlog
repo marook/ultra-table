@@ -1,5 +1,4 @@
 * backlog
 ** sticky thead
-** make column widths resizable
 ** make only columns droppable over table
 right now it's possible to drop for example page links over columns.

@@ -13,3 +13,10 @@ ultra-table .ut-drop-column-left, ultra-table .ut-drop-column-right {
 ultra-table .ut-drop-column-left .left-indicator, ultra-table .ut-drop-column-right .right-indicator {
     display: inline;
 }
+
+ultra-table .ut-column-resize-dragger {
+    float: right;
+    background-color: red;
+    width: 5px;
+    height: 20px;
+}

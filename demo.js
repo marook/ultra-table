@@ -7,15 +7,15 @@
         $scope.columns = [
             {
                 id: 'firstName',
-                label: 'First Name'
+                width: 200
             },
             {
                 id: 'birthday',
-                label: 'Birthday'
+                width: 240
             },
             {
                 id: 'favouriteFood',
-                label: 'Favourite Food'
+                width: 160
             }
         ];
 
@@ -39,6 +39,9 @@
 
         $scope.shuffleColumnOrder = shuffleColumnOrder;
         $scope.shuffleNames = shuffleNames;
+        $scope.shuffleRows = shuffleRows;
+        $scope.growColumns = growColumns;
+        $scope.shrinkColumns = shrinkColumns;
 
         function shuffleColumnOrder(){
             shuffle($scope.columns);
@@ -50,6 +53,24 @@
                 var firstName = row.firstName;
 
                 row.firstName = firstName.substring(1) + firstName.substring(0, 1);
+            }
+        }
+
+        function shuffleRows(){
+            shuffle($scope.rows);
+        }
+
+        function growColumns(){
+            addColumnWidth(10);
+        }
+
+        function shrinkColumns(){
+            addColumnWidth(-10);
+        }
+
+        function addColumnWidth(addedWidth){
+            for(var i = 0; i < $scope.columns.length; ++i){
+                $scope.columns[i].width += addedWidth;
             }
         }
 
