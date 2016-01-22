@@ -154,7 +154,16 @@
                 scope.$apply(function(){
                     var column = scope.columns[columnIndex];
                     var dx = e.clientX - resizeData.startX;
-                    column.width = resizeData.startWidth + dx;
+                    var width = resizeData.startWidth + dx;
+
+                    if(column.minWidth){
+                        width = Math.max(width, column.minWidth);
+                    }
+                    if(column.maxWidth){
+                        width = Math.min(width, column.maxWidth);
+                    }
+
+                    column.width = width;
                 });
             }
         }

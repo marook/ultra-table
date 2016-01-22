@@ -7,7 +7,8 @@
         $scope.columns = [
             {
                 id: 'firstName',
-                width: 200
+                width: 200,
+                minWidth: 150
             },
             {
                 id: 'birthday',
@@ -15,7 +16,8 @@
             },
             {
                 id: 'favouriteFood',
-                width: 160
+                width: 160,
+                maxWidth: 200
             }
         ];
 
