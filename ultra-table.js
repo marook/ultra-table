@@ -53,19 +53,20 @@
 
         function link(scope, $element, attrs){
             var element = $element[0];
+            var tableClass = attrs.tableClass || '';
 
-            appendDataTable(scope, element);
+            appendTables(scope, element, tableClass);
 
             bindColumnResizeListener(element, scope);
         }
 
-        function appendDataTable(scope, element){
+        function appendTables(scope, element, tableClass){
             var headTableContainer = document.createElement('div');
             headTableContainer.classList.add('ut-head-table-container');
             element.appendChild(headTableContainer);
 
             var headTable = document.createElement('table');
-            headTable.classList.add('ut-head-table');
+            headTable.className = 'ut-head-table ' + tableClass;
             headTableContainer.appendChild(headTable);
 
             var thead = document.createElement('thead');
@@ -77,7 +78,7 @@
             bindHeadAndBodyTableScrollSynchronization(headTableContainer, bodyTableContainer);
 
             var bodyTable = document.createElement('table');
-            bodyTable.classList.add('ut-body-table');
+            bodyTable.className = 'ut-body-table ' + tableClass;
             bodyTableContainer.appendChild(bodyTable);
 
             var tbody = document.createElement('tbody');
@@ -457,6 +458,12 @@
             compile: compile,
             link: link,
             scope: {
+
+                /**
+                 * Classes which are assigned to the table element.
+                 */
+                tableClass: '@',
+
                 /**
                  * Definition of the table's columns. Example:
                  *
