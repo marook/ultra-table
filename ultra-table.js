@@ -190,6 +190,8 @@
                     return;
                 }
 
+                e.dataTransfer.effectAllowed = 'move';
+
                 setDragData(e, DRAG_TYPE.COLUMN_RESIZE, {
                     columnId: columnId,
                     startX: e.clientX,
@@ -206,6 +208,8 @@
 
             function onColumnDragStart(e){
                 e.cancelBubble = true;
+                e.dataTransfer.effectAllowed = 'move';
+
                 setDragData(e, DRAG_TYPE.COLUMN_DRAG, columnId);
             }
 
