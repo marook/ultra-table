@@ -1,0 +1,11 @@
+ultra-table {
+    display: block;
+}
+
+ultra-table .ut-head-table-container {
+    overflow: hidden;
+}
+
+ultra-table .ut-body-table-container {
+    overflow: scroll;
+}

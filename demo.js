@@ -19,29 +19,35 @@
             }
         ];
 
-        $scope.rows = [
-            {
-                firstName: 'Markus',
-                birthday: new Date(1980, 1, 1),
-                favouriteFood: 'Pizza'
-            },
-            {
-                firstName: 'Cristian',
-                birthday: new Date(1970, 1, 1),
-                favouriteFood: 'Salad'
-            },
-            {
-                firstName: 'Emanuell',
-                birthday: new Date(1990, 1, 1),
-                favouriteFood: 'Wraps'
-            }
-        ];
+        $scope.rows = createRandomRows(20);
 
         $scope.shuffleColumnOrder = shuffleColumnOrder;
         $scope.shuffleNames = shuffleNames;
         $scope.shuffleRows = shuffleRows;
         $scope.growColumns = growColumns;
         $scope.shrinkColumns = shrinkColumns;
+
+        function createRandomRows(n){
+            var rows = [];
+
+            for(var i = 0; i < n; ++i){
+                rows.push(createRandomRow());
+            }
+
+            return rows;
+        }
+
+        function createRandomRow(){
+            return {
+                firstName: selectRandomElement(['Markus', 'Cristian', 'Emanuell']),
+                birthday: new Date(1970 + Math.round(Math.random() * 20), 1 + Math.round(Math.random() * 12), 1 + Math.round(Math.random() * 28)),
+                favouriteFood: selectRandomElement(['Pizza', 'Salad', 'Wraps', 'Curry'])
+            };
+        }
+
+        function selectRandomElement(array){
+            return array[Math.floor(Math.random() * array.length)];
+        }
 
         function shuffleColumnOrder(){
             shuffle($scope.columns);

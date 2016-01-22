@@ -8,6 +8,8 @@
             COLUMN_RESIZE: 'ultra-table.columnResize'
         };
 
+        var SCROLLBAR_WIDTH = 35;
+
         /**
          * Key is column id / value is cell template jqlite element.
          */
@@ -52,17 +54,59 @@
         function link(scope, $element, attrs){
             var element = $element[0];
 
-            var table = document.createElement('table');
-            element.appendChild(table);
+            appendDataTable(scope, element);
+
+            bindColumnResizeListener(element, scope);
+        }
+
+        function appendDataTable(scope, element){
+            var headTableContainer = document.createElement('div');
+            headTableContainer.classList.add('ut-head-table-container');
+            element.appendChild(headTableContainer);
+
+            var headTable = document.createElement('table');
+            headTable.classList.add('ut-head-table');
+            headTableContainer.appendChild(headTable);
 
             var thead = document.createElement('thead');
-            table.appendChild(thead);
+            headTable.appendChild(thead);
+
+            var bodyTableContainer = document.createElement('div');
+            bodyTableContainer.classList.add('ut-body-table-container');
+            element.appendChild(bodyTableContainer);
+            bindHeadAndBodyTableScrollSynchronization(headTableContainer, bodyTableContainer);
+
+            var bodyTable = document.createElement('table');
+            bodyTable.classList.add('ut-body-table');
+            bodyTableContainer.appendChild(bodyTable);
 
             var tbody = document.createElement('tbody');
-            table.appendChild(tbody);
+            bodyTable.appendChild(tbody);
 
-            linkTable(scope, thead, tbody);
-            bindColumnResizeListener(element, scope);
+            linkTable(scope, thead, tbody, _updateTableWidths_);
+
+            function _updateTableWidths_(){
+                updateTableWidths(scope, headTable, bodyTable);
+            }
+        }
+
+        function updateTableWidths(scope, headTable, bodyTable){
+            var width = 0;
+            for(var i = scope.columns.length - 1; i >= 0; --i){
+                width += scope.columns[i].width;
+            }
+
+            headTable.style.width = (width + SCROLLBAR_WIDTH) + 'px';
+            bodyTable.style.width = width + 'px';
+        }
+
+        function bindHeadAndBodyTableScrollSynchronization(headTableContainer, bodyTableContainer){
+            bodyTableContainer.addEventListener('scroll', synchronizeScroll, false);
+            synchronizeScroll();
+
+            function synchronizeScroll(){
+                headTableContainer.scrollLeft = bodyTableContainer.scrollLeft;
+            }
         }
 
         function bindColumnResizeListener(element, scope){
@@ -82,9 +126,6 @@
             }
 
             function onDrop(e){
-                console.log('>>>>dddd');
-                console.log('>>>>drop', getDragData(e, DRAG_TYPE.COLUMN_RESIZE));
-
                 if(dragTypeInProgress !== DRAG_TYPE.COLUMN_RESIZE){
                     return;
                 }
@@ -117,33 +158,46 @@
             }
         }
 
-        function linkTable(scope, thead, tbody){
+        function linkTable(scope, thead, tbody, updateTableWidths){
             var tbodyScopes = [];
             var theadScopes = [];
 
             scope.$watchCollection('columns', function(){
-                renderHead(thead, theadScopes, scope);
-                renderRows(tbody, tbodyScopes, scope);
+                renderHead(thead, theadScopes, scope, updateTableWidths);
+                if(tbody){
+                    renderRows(tbody, tbodyScopes, scope);
+                }
             });
-            renderHead(thead, theadScopes, scope);
+            renderHead(thead, theadScopes, scope, updateTableWidths);
 
-            scope.$watchCollection('rows', function(){
+            if(tbody){
+                scope.$watchCollection('rows', function(){
+                    renderRows(tbody, tbodyScopes, scope);
+                });
                 renderRows(tbody, tbodyScopes, scope);
-            });
-            renderRows(tbody, tbodyScopes, scope);
-        }
-
-        function renderHead(thead, threadScopes, scope){
-            empty(thead, threadScopes);
-
-            for(var i = 0; i < scope.columns.length; ++i){
-                var th = renderTh(scope.columns[i], scope, threadScopes);
-
-                thead.appendChild(th);
             }
         }
 
-        function renderTh(column, scope, scopes){
+        function renderHead(thead, threadScopes, scope, updateTableWidths){
+            empty(thead, threadScopes);
+
+            for(var i = 0; i < scope.columns.length; ++i){
+                var th = renderTh(scope.columns[i], scope, threadScopes, updateTableWidths);
+
+                thead.appendChild(th);
+            }
+
+            thead.appendChild(renderScrollbarSpacerColumn('th'));
+        }
+
+        function renderScrollbarSpacerColumn(tagName){
+            var cell = document.createElement(tagName);
+            cell.style.width = SCROLLBAR_WIDTH + 'px';
+
+            return cell;
+        }
+
+        function renderTh(column, scope, scopes, updateTableWidths){
             var th = document.createElement('th');
             th.setAttribute('draggable', 'true');
             bindDragListenersForColumn(th, column.id, scope);
@@ -166,6 +220,7 @@
 
             function updateWidth(){
                 th.style.width = column.width + 'px';
+                updateTableWidths();
             }
         }
 
@@ -310,11 +365,11 @@
 
             for(var i = 0; i < scope.rows.length; ++i){
                 var row = scope.rows[i];
-                appendRow(tbody, row, scope, tbodyScopes);
+                appendRow(tbody, row, scope, tbodyScopes, i === 0);
             }
         }
 
-        function appendRow(tbody, row, scope, scopes){
+        function appendRow(tbody, row, scope, scopes, enforceWidth){
             var tr = document.createElement('tr');
             tbody.appendChild(tr);
 
@@ -328,9 +383,21 @@
                 if(columnTemplate){
                     var cellScope = scope.$new();
                     scopes.push(cellScope);
+                    cellScope.column = column;
                     cellScope.row = row;
 
                     renderTemplateWithinElement(td, columnTemplate, cellScope);
+
+                    if(enforceWidth){
+                        (function(td, column){
+                            cellScope.$watch('column.width', updateWidth);
+                            updateWidth();
+                            
+                            function updateWidth(){
+                                td.style.width = column.width + 'px';
+                            }
+                        }(td, column));
+                    }
                 }
             }
         }

@@ -1,3 +1,11 @@
+ultra-table {
+    width: 300px;
+}
+
+ultra-table .ut-body-table-container {
+    height: 300px;
+}
+
 ultra-table th {
     cursor: default;
 }
@@ -20,4 +28,8 @@ ultra-table .ut-column-resize-dragger {
     background-color: red;
     width: 5px;
     height: 24px;
+}
+
+table, th, td {
+    border: 1px solid black;
 }
