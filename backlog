@@ -1,3 +1,6 @@
 * backlog
+** minWidth and maxWidth must be enforced on initialization
+so if the width of a column is initially < minWindth the width must be
+set to minWidth
 ** make only columns droppable over table
 right now it's possible to drop for example page links over columns.
