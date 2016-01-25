@@ -216,7 +216,7 @@
 
             var columnTemplate = thTemplates[column.id];
             if(columnTemplate){
-                var cellScope = scope.$new();
+                var cellScope = scope.$parent.$new();
                 scopes.push(cellScope);
                 cellScope.column = column;
 
@@ -391,7 +391,7 @@
 
                 var columnTemplate = tdTemplates[column.id];
                 if(columnTemplate){
-                    var cellScope = scope.$new();
+                    var cellScope = scope.$parent.$new();
                     scopes.push(cellScope);
                     cellScope.column = column;
                     cellScope.row = row;
