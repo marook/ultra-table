@@ -156,14 +156,7 @@
                     var dx = e.clientX - resizeData.startX;
                     var width = resizeData.startWidth + dx;
 
-                    if(column.minWidth){
-                        width = Math.max(width, column.minWidth);
-                    }
-                    if(column.maxWidth){
-                        width = Math.min(width, column.maxWidth);
-                    }
-
-                    column.width = width;
+                    column.width = enforceBounds(width, column.minWidth, column.maxWidth);
                 });
             }
         }
@@ -229,9 +222,21 @@
             return th;
 
             function updateWidth(){
-                th.style.width = column.width + 'px';
+                th.style.width = enforceBounds(column.width, column.minWidth, column.maxWidth) + 'px';
                 updateTableWidths();
             }
+        }
+
+        function enforceBounds(value, min, max){
+            if(typeof min === 'number' && value < min){
+                return min;
+            }
+
+            if(typeof max === 'number' && value > max){
+                return max;
+            }
+
+            return value;
         }
 
         function renderResizeDragger(column, scope){
