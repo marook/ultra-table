@@ -184,10 +184,12 @@
         function renderHead(thead, threadScopes, scope, updateTableWidths){
             empty(thead, threadScopes);
 
-            for(var i = 0; i < scope.columns.length; ++i){
-                var th = renderTh(scope.columns[i], scope, threadScopes, updateTableWidths);
+            if(scope.columns){
+                for(var i = 0; i < scope.columns.length; ++i){
+                    var th = renderTh(scope.columns[i], scope, threadScopes, updateTableWidths);
 
-                thead.appendChild(th);
+                    thead.appendChild(th);
+                }
             }
 
             thead.appendChild(renderScrollbarSpacerColumn('th'));
@@ -378,9 +380,11 @@
         function renderRows(tbody, tbodyScopes, scope){
             empty(tbody, tbodyScopes);
 
-            for(var i = 0; i < scope.rows.length; ++i){
-                var row = scope.rows[i];
-                appendRow(tbody, row, scope, tbodyScopes, i === 0);
+            if(scope.rows){
+                for(var i = 0; i < scope.rows.length; ++i){
+                    var row = scope.rows[i];
+                    appendRow(tbody, row, scope, tbodyScopes, i === 0);
+                }
             }
         }
 
