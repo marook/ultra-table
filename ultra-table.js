@@ -173,10 +173,12 @@
             });
             renderHead(thead, theadScopes, scope, updateTableWidths);
 
-            if(tbody){
-                scope.$watchCollection('rows', function(){
+            scope.$watchCollection('rows', function(){
+                if(tbody){
                     renderRows(tbody, tbodyScopes, scope);
-                });
+                }
+            });
+            if(tbody){
                 renderRows(tbody, tbodyScopes, scope);
             }
         }
