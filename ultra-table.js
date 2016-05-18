@@ -204,6 +204,7 @@
             function renderTh(column, scope, scopes, updateTableWidths){
                 var th = document.createElement('th');
                 th.setAttribute('draggable', 'true');
+                th.classList.add('content-column');
                 bindDragListenersForColumn(th, column.id, scope);
 
                 th.appendChild(renderResizeDragger(column, scope));
