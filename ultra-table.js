@@ -385,7 +385,16 @@
                         var row = scope.rows[i];
                         appendRow(tbody, row, scope, tbodyScopes, i === 0);
                     }
+                    if (scope.rows.length === 0){
+                        appendEmptyRow(tbody, scope, tbodyScopes);
+                    }
                 }
+            }
+
+            function appendEmptyRow(tbody,scope,scopes, enforceWidth){
+                var tr = document.createElement('tr');
+                tbody.appendChild(tr);
+                tr.style.height = '1px';
             }
 
             function appendRow(tbody, row, scope, scopes, enforceWidth){
@@ -432,7 +441,7 @@
                 }
 
                 var command = JSON.parse(serializedCommand);
-                
+
                 if(command.type !== dragType){
                     return null;
                 }
@@ -504,7 +513,7 @@
                  * An array of rows.
                  */
                 rows: '='
-                
+
             }
         };
     });
