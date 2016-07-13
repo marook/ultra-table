@@ -1,7 +1,7 @@
 (function(angular, document){
     var module = angular.module('ultra-table', []);
 
-    module.directive('ultraTable', function($compile){
+    module.directive('ultraTable', function($compile, $timeout){
 
         var DRAG_TYPE = {
             COLUMN_DRAG: 'ultra-table.columnDrag',
@@ -510,7 +510,7 @@
                 renderQueue.splice(i + 1, processedJobs);
 
                 if(i > 0){
-                    setTimeout(workNextQueueChunk, 25);
+                    $timeout(workNextQueueChunk, 25);
                 }
             }
 
