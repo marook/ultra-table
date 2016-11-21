@@ -1,7 +1,7 @@
 (function(angular, document){
     var module = angular.module('ultra-table', []);
 
-    module.directive('ultraTable', function($compile, $timeout){
+    module.directive('ultraTable', function($compile, $timeout, $q, $parse){
 
         var DRAG_TYPE = {
             COLUMN_DRAG: 'ultra-table.columnDrag',
@@ -24,6 +24,9 @@
             var tdTemplates = {};
 
             var rowsRenderQueue = null;
+
+            var getSelectedRow = templateAttrs.utSelectedRow ? $parse(templateAttrs.utSelectedRow) : null;
+            var setSelectedRow = templateAttrs.utSelectedRow ? getSelectedRow.assign : null;
 
             extractCellTemplates(templateElement[0]);
 
@@ -50,16 +53,16 @@
                 }
             }
 
-            function link(scope, $element, attrs){
+            function link(tableScope, $element, attrs){
                 var element = $element[0];
                 var tableClass = attrs.tableClass || '';
 
-                appendTables(scope, element, tableClass);
+                appendTables(tableScope, element, tableClass);
 
-                bindColumnResizeListener(element, scope);
+                bindColumnResizeListener(element, tableScope);
             }
 
-            function appendTables(scope, element, tableClass){
+            function appendTables(tableScope, element, tableClass){
                 var headTableContainer = document.createElement('div');
                 headTableContainer.classList.add('ut-head-table-container');
                 element.appendChild(headTableContainer);
@@ -83,10 +86,10 @@
                 var tbody = document.createElement('tbody');
                 bodyTable.appendChild(tbody);
 
-                linkTable(scope, thead, tbody, _updateTableWidths_);
+                linkTable(tableScope, thead, tbody, _updateTableWidths_);
 
                 function _updateTableWidths_(){
-                    updateTableWidths(scope, headTable, bodyTable);
+                    updateTableWidths(tableScope, headTable, bodyTable);
                 }
             }
 
@@ -160,25 +163,130 @@
                 }
             }
 
-            function linkTable(scope, thead, tbody, updateTableWidths){
+            function linkTable(tableScope, thead, tbody, updateTableWidths){
                 var tbodyScopes = [];
                 var theadScopes = [];
+                var selectedRowElement = null;
+                var rowElementByRowMap = null;
 
-                scope.$watchCollection('columns', function(){
-                    renderHead(thead, theadScopes, scope, updateTableWidths);
+                tableScope.$watchCollection('columns', function(){
+                    renderHead(thead, theadScopes, tableScope, updateTableWidths);
                     if(tbody){
-                        renderRows(tbody, tbodyScopes, scope);
+                        renderRows();
                     }
                 });
-                renderHead(thead, theadScopes, scope, updateTableWidths);
+                renderHead(thead, theadScopes, tableScope, updateTableWidths);
 
-                scope.$watchCollection('rows', function(){
+                tableScope.$watchCollection('rows', function(){
                     if(tbody){
-                        renderRows(tbody, tbodyScopes, scope);
+                        renderRows();
                     }
                 });
                 if(tbody){
-                    renderRows(tbody, tbodyScopes, scope);
+                    renderRows();
+                }
+
+                if(getSelectedRow){
+                    var deregister = tableScope.$parent.$watch(templateAttrs.utSelectedRow, function(){
+                        var selectedRow = getSelectedRow(tableScope.$parent);
+                        var selectedRowElement = rowElementByRowMap.get(selectedRow);
+                        if(selectedRowElement){
+                            selectRowElement(selectedRowElement);
+                        }
+                    });
+                    tableScope.$on('$destroy', deregister);
+                }
+
+                function renderRows(){
+                    rowElementByRowMap = new Map();
+
+                    if(rowsRenderQueue){
+                        rowsRenderQueue.abortRendering();
+                    }
+                    rowsRenderQueue = buildRenderQueue();
+
+                    empty(tbody, tbodyScopes);
+
+                    if(tableScope.rows){
+                        for(var i = 0; i < tableScope.rows.length; ++i){
+                            var row = tableScope.rows[i];
+                            rowElementByRowMap.set(row, appendRow(row, tableScope, i === 0));
+                        }
+                        if (tableScope.rows.length === 0){
+                            appendEmptyRow(tbody, tableScope, tbodyScopes);
+                        }
+                        var initiallySelectedRow = getSelectedRow ? getSelectedRow(tableScope.$parent) : null;
+                        if(initiallySelectedRow){
+                            var initiallySelectedRowElement = rowElementByRowMap.get(initiallySelectedRow);
+                            if(initiallySelectedRowElement){
+                                selectRowElement(initiallySelectedRowElement);
+                            }
+                        }
+                    }
+
+                    rowsRenderQueue.startRendering();
+                }
+
+                function appendRow(row, tableScope, enforceWidth){
+                    var tr = document.createElement('tr');
+                    if(templateAttrs.utBeforeSelectRow || setSelectedRow){
+                        tr.addEventListener('click', function(){
+                            tableScope.$apply(function(){
+                                return $q.when()
+                                    .then(function(){
+                                        return tableScope.utBeforeSelectRow({
+                                            row: row
+                                        });
+                                    })
+                                    .then(function(){
+                                        selectRowElement(tr);
+                                        if(setSelectedRow){
+                                            return setSelectedRow(tableScope.$parent, row);
+                                        }
+                                    });
+                            });
+                        });
+                    }
+                    tbody.appendChild(tr);
+
+                    for(var i = 0; i < tableScope.columns.length; ++i){
+                        (function(column){
+                            var td = document.createElement('td');
+                            tr.appendChild(td);
+
+                            var columnTemplate = tdTemplates[column.id];
+                            if(columnTemplate){
+                                var cellScope = tableScope.$parent.$new();
+                                tbodyScopes.push(cellScope);
+                                cellScope.column = column;
+                                cellScope.row = row;
+
+                                rowsRenderQueue.appendJob(function(){
+                                    renderTemplateWithinElement(td, columnTemplate, cellScope);
+
+                                    if(enforceWidth){
+                                        (function(td, column){
+                                            cellScope.$watch('column.width', updateWidth);
+                                            updateWidth();
+
+                                            function updateWidth(){
+                                                td.style.width = column.width + 'px';
+                                            }
+                                        }(td, column));
+                                    }
+                                });
+                            }
+                        }(tableScope.columns[i]));
+                    }
+                    return tr;
+                }
+
+                function selectRowElement(rowElement){
+                    if(selectedRowElement){
+                        selectedRowElement.classList.remove('selected');
+                    }
+                    selectedRowElement = rowElement;
+                    selectedRowElement.classList.add('selected');
                 }
             }
 
@@ -379,66 +487,10 @@
                 th.classList.remove('ut-drop-column-right');
             }
 
-            function renderRows(tbody, tbodyScopes, scope){
-                if(rowsRenderQueue){
-                    rowsRenderQueue.abortRendering();
-                }
-                rowsRenderQueue = buildRenderQueue();
-
-                empty(tbody, tbodyScopes);
-
-                if(scope.rows){
-                    for(var i = 0; i < scope.rows.length; ++i){
-                        var row = scope.rows[i];
-                        appendRow(tbody, row, scope, tbodyScopes, i === 0);
-                    }
-                    if (scope.rows.length === 0){
-                        appendEmptyRow(tbody, scope, tbodyScopes);
-                    }
-                }
-
-                rowsRenderQueue.startRendering();
-            }
-
-            function appendEmptyRow(tbody,scope,scopes, enforceWidth){
+            function appendEmptyRow(tbody, scope, scopes, enforceWidth){
                 var tr = document.createElement('tr');
                 tbody.appendChild(tr);
                 tr.style.height = '1px';
-            }
-
-            function appendRow(tbody, row, scope, scopes, enforceWidth){
-                var tr = document.createElement('tr');
-                tbody.appendChild(tr);
-
-                for(var i = 0; i < scope.columns.length; ++i){
-                    (function(column){
-                        var td = document.createElement('td');
-                        tr.appendChild(td);
-
-                        var columnTemplate = tdTemplates[column.id];
-                        if(columnTemplate){
-                            var cellScope = scope.$parent.$new();
-                            scopes.push(cellScope);
-                            cellScope.column = column;
-                            cellScope.row = row;
-
-                            rowsRenderQueue.appendJob(function(){
-                                renderTemplateWithinElement(td, columnTemplate, cellScope);
-
-                                if(enforceWidth){
-                                    (function(td, column){
-                                        cellScope.$watch('column.width', updateWidth);
-                                        updateWidth();
-
-                                        function updateWidth(){
-                                            td.style.width = column.width + 'px';
-                                        }
-                                    }(td, column));
-                                }
-                            });
-                        }
-                    }(scope.columns[i]));
-                }
             }
 
             return link;
@@ -566,7 +618,21 @@
                 /**
                  * An array of rows.
                  */
-                rows: '='
+                rows: '=',
+
+                /**
+                 * This expression is evaluated when the user selects a
+                 * row in the table body. The expression can return a
+                 * rejected promise to prevent the selection change.
+                 *
+                 * The following additional variables are available in
+                 * the expression:
+                 * - row: The row object which's tr element got
+                 *   clicked.
+                 */
+                utBeforeSelectRow: '&',
+
+                utSelectedRow: '@',
 
             }
         };
