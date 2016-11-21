@@ -234,6 +234,11 @@
                             tableScope.$apply(function(){
                                 return $q.when()
                                     .then(function(){
+                                        var selectedRow = getSelectedRow(tableScope.$parent);
+                                        if(selectedRow === row){
+                                            return $q.reject();
+                                        }
+
                                         return tableScope.utBeforeSelectRow({
                                             row: row
                                         });
