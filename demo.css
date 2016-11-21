@@ -33,3 +33,11 @@ ultra-table .ut-column-resize-dragger {
 table, th, td {
     border: 1px solid black;
 }
+
+tbody tr {
+    cursor: default;
+}
+
+tbody tr.selected {
+    background-color: #eeeeff;
+}
