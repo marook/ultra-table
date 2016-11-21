@@ -3,7 +3,7 @@
         'ultra-table',
     ]);
 
-    app.controller('MainController', function($scope){
+    app.controller('MainController', function($scope, $log, $q){
         $scope.columns = [
             {
                 id: 'firstName',
@@ -22,12 +22,14 @@
         ];
 
         $scope.rows = createRandomRows(20);
+        $scope.selectedRow = null;
 
         $scope.shuffleColumnOrder = shuffleColumnOrder;
         $scope.shuffleNames = shuffleNames;
         $scope.shuffleRows = shuffleRows;
         $scope.growColumns = growColumns;
         $scope.shrinkColumns = shrinkColumns;
+        $scope.beforeSelectRow = beforeSelectRow;
 
         function createRandomRows(n){
             var rows = [];
@@ -74,6 +76,17 @@
 
         function shrinkColumns(){
             addColumnWidth(-10);
+        }
+
+        function beforeSelectRow(row){
+            return $q.when()
+                .then(function(){
+                    /*
+                     * Btw... returning a rejected promise will prevent
+                     * the row from being selected.
+                     */
+                    $log.info('You shall select row', row);
+                });
         }
 
         function addColumnWidth(addedWidth){
