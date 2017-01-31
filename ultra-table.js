@@ -231,6 +231,9 @@
                     var tr = document.createElement('tr');
                     if(templateAttrs.utBeforeSelectRow || setSelectedRow){
                         tr.addEventListener('click', function(){
+                            if(tr.parentNode === null){
+                                return;
+                            }
                             tableScope.$apply(function(){
                                 return $q.when()
                                     .then(function(){
