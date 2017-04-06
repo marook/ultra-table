@@ -12,7 +12,7 @@
   <body ng-controller="MainController">
     <h1>ultra-table demo</h1>
 
-    <ultra-table table-class="demo-table" columns="columns" rows="rows" ut-selected-row="selectedRow" ut-before-select-row="beforeSelectRow(row)">
+    <ultra-table table-class="demo-table" columns="columns" rows="rows" ut-selection-type="single" ut-selection="selection">
       <ut-th column-id="firstName">
         <span class="left-indicator">&lt;</span>
         FFFF First Name {{ 1 + 1 }}
@@ -49,8 +49,8 @@
     </div>
 
     <div>
-      <h2>$scope.selectedRow</h2>
-      <pre>{{ selectedRow | json }}
+      <h2>$scope.selection</h2>
+      <pre>{{ selection | json }}
     </div>
 
     <div>

@@ -22,7 +22,7 @@
         ];
 
         $scope.rows = createRandomRows(20);
-        $scope.selectedRow = null;
+        $scope.selection = [];
 
         $scope.shuffleColumnOrder = shuffleColumnOrder;
         $scope.shuffleNames = shuffleNames;
