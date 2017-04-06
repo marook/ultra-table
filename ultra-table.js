@@ -10,6 +10,14 @@
 
         var SCROLLBAR_WIDTH = 35;
 
+        var SELECTION_TYPES = new Set([
+            'NONE',
+            'SINGLE',
+            'MULTIPLE',
+        ]);
+
+        var selectionType = '';
+
         var dragTypeInProgress = null;
 
         function compile(templateElement, templateAttrs){
@@ -24,9 +32,11 @@
             var tdTemplates = {};
 
             var rowsRenderQueue = null;
+            
+            selectionType = templateAttrs.utSelectionType || 'NONE';
+            selectionType = SELECTION_TYPES.has(selectionType.toUpperCase()) && templateAttrs.utSelection ? selectionType.toUpperCase() : 'NONE';
 
-            var getSelectedRow = templateAttrs.utSelectedRow ? $parse(templateAttrs.utSelectedRow) : null;
-            var setSelectedRow = templateAttrs.utSelectedRow ? getSelectedRow.assign : null;
+            var getSelection = $parse(templateAttrs.utSelection);
 
             extractCellTemplates(templateElement[0]);
 
@@ -166,7 +176,7 @@
             function linkTable(tableScope, thead, tbody, updateTableWidths){
                 var tbodyScopes = [];
                 var theadScopes = [];
-                var selectedRowElement = null;
+                var selectedRowElements = new Set();
                 var rowElementByRowMap = null;
 
                 tableScope.$watchCollection('columns', function(){
@@ -185,15 +195,10 @@
                 if(tbody){
                     renderRows();
                 }
+                
 
-                if(getSelectedRow){
-                    var deregister = tableScope.$parent.$watch(templateAttrs.utSelectedRow, function(){
-                        var selectedRow = getSelectedRow(tableScope.$parent);
-                        var selectedRowElement = rowElementByRowMap.get(selectedRow);
-                        if(selectedRowElement){
-                            selectRowElement(selectedRowElement);
-                        }
-                    });
+                if(isSelectable()){
+                    var deregister = tableScope.$parent.$watchCollection(templateAttrs.utSelection, updateSelectedRowElements);
                     tableScope.$on('$destroy', deregister);
                 }
 
@@ -215,13 +220,7 @@
                         if (tableScope.rows.length === 0){
                             appendEmptyRow(tbody, tableScope, tbodyScopes);
                         }
-                        var initiallySelectedRow = getSelectedRow ? getSelectedRow(tableScope.$parent) : null;
-                        if(initiallySelectedRow){
-                            var initiallySelectedRowElement = rowElementByRowMap.get(initiallySelectedRow);
-                            if(initiallySelectedRowElement){
-                                selectRowElement(initiallySelectedRowElement);
-                            }
-                        }
+                        updateSelectedRowElements(getSelection(tableScope.$parent));
                     }
 
                     rowsRenderQueue.startRendering();
@@ -229,27 +228,41 @@
 
                 function appendRow(row, tableScope, enforceWidth){
                     var tr = document.createElement('tr');
-                    if(templateAttrs.utBeforeSelectRow || setSelectedRow){
-                        tr.addEventListener('click', function(){
+                    if(isSelectable()){
+                        tr.addEventListener('click', function(event){
                             if(tr.parentNode === null){
                                 return;
                             }
-                            tableScope.$apply(function(){
+                            tableScope.$apply(function () {
                                 return $q.when()
-                                    .then(function(){
-                                        var selectedRow = getSelectedRow(tableScope.$parent);
-                                        if(selectedRow === row){
+                                    .then(function () {
+                                        if (selectedRowElements.has(tr)) {
+                                            if (isMultiSelect()) {
+                                                var selection = getSelection(tableScope.$parent);
+                                                if (selection) {
+                                                    if (event.ctrlKey) {
+                                                        selection.splice(selection.indexOf(row), 1);
+                                                    } else {
+                                                        selection.splice(0, selection.length);
+                                                        selection.push(row);
+                                                    }
+                                                }
+                                            }
                                             return $q.reject();
                                         }
-
-                                        return tableScope.utBeforeSelectRow({
+                                        return tableScope.utBeforeSelection({
                                             row: row
                                         });
                                     })
-                                    .then(function(){
-                                        selectRowElement(tr);
-                                        if(setSelectedRow){
-                                            return setSelectedRow(tableScope.$parent, row);
+                                    .then(function () {
+                                        var selection = getSelection(tableScope.$parent);
+                                        if (selection) {
+                                            if (isMultiSelect() && event.ctrlKey) {
+                                                selection.push(row);
+                                            } else {
+                                                selection.splice(0, selection.length);
+                                                selection.push(row);
+                                            }
                                         }
                                     });
                             });
@@ -288,13 +301,21 @@
                     }
                     return tr;
                 }
-
-                function selectRowElement(rowElement){
-                    if(selectedRowElement){
-                        selectedRowElement.classList.remove('selected');
+                function updateSelectedRowElements(selection) {
+                    if (!selection) {
+                        return
                     }
-                    selectedRowElement = rowElement;
-                    selectedRowElement.classList.add('selected');
+                    var selectedElements = new Set(selection.map(item => rowElementByRowMap.get(item)));
+                    [...selectedRowElements]
+                        .filter(row => !selectedElements.has(row))
+                        .forEach(row => {
+                            row.classList.remove('selected');
+                        });
+
+                    selectedRowElements = selectedElements;
+                    selectedRowElements.forEach(row => {
+                        row.classList.add('selected');
+                    });
                 }
             }
 
@@ -593,6 +614,14 @@
             scopes.splice(0, scopes.length);
         }
 
+        function isSelectable() {
+            return selectionType !== 'NONE';
+        }
+
+        function isMultiSelect() {
+            return selectionType === 'MULTIPLE';
+        }
+
         return {
             restrict: 'E',
             compile: compile,
@@ -624,6 +653,8 @@
                  */
                 rows: '=',
 
+                utSelectionType: '<',
+
                 /**
                  * This expression is evaluated when the user selects a
                  * row in the table body. The expression can return a
@@ -634,10 +665,9 @@
                  * - row: The row object which's tr element got
                  *   clicked.
                  */
-                utBeforeSelectRow: '&',
+                utBeforeSelection: '&',
 
-                utSelectedRow: '@',
-
+                utSelection: '@',
             }
         };
     });
