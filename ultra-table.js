@@ -607,14 +607,10 @@
         }
 
         function empty(element, scopes){
-            while(element.children.length > 0){
-                element.removeChild(element.children[element.children.length - 1]);
-            }
-
+            angular.element(element).empty();
             for(var i = scopes.length - 1; i >= 0; --i){
                 scopes[i].$destroy();
             }
-
             scopes.splice(0, scopes.length);
         }
 
