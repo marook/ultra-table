@@ -16,8 +16,6 @@
             'MULTIPLE',
         ]);
 
-        var selectionType = '';
-
         var dragTypeInProgress = null;
 
         function compile(templateElement, templateAttrs){
@@ -32,11 +30,18 @@
             var tdTemplates = {};
 
             var rowsRenderQueue = null;
-            
-            selectionType = templateAttrs.utSelectionType || 'NONE';
-            selectionType = SELECTION_TYPES.has(selectionType.toUpperCase()) && templateAttrs.utSelection ? selectionType.toUpperCase() : 'NONE';
 
             var getSelection = $parse(templateAttrs.utSelection);
+            
+            var selectionType = 'NONE';
+            if(templateAttrs.utSelection){
+                if (templateAttrs.utSelectionType && SELECTION_TYPES.has(templateAttrs.utSelectionType.toUpperCase())) {
+                    selectionType = templateAttrs.utSelectionType.toUpperCase();
+                } else {
+                    selectionType = 'SINGLE'
+                }
+            }
+
 
             extractCellTemplates(templateElement[0]);
 
@@ -305,7 +310,7 @@
                     if (!selection) {
                         return
                     }
-                    var selectedElements = new Set(selection.map(item => rowElementByRowMap.get(item)));
+                    var selectedElements = new Set(selection.filter(item => rowElementByRowMap.has(item)).map(item => rowElementByRowMap.get(item)));
                     [...selectedRowElements]
                         .filter(row => !selectedElements.has(row))
                         .forEach(row => {
@@ -522,6 +527,14 @@
                 tr.style.height = '1px';
             }
 
+            function isSelectable() {
+                return selectionType !== 'NONE';
+            }
+
+            function isMultiSelect() {
+                return selectionType === 'MULTIPLE';
+            }
+
             return link;
         }
 
@@ -612,14 +625,6 @@
                 scopes[i].$destroy();
             }
             scopes.splice(0, scopes.length);
-        }
-
-        function isSelectable() {
-            return selectionType !== 'NONE';
-        }
-
-        function isMultiSelect() {
-            return selectionType === 'MULTIPLE';
         }
 
         return {
