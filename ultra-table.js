@@ -10,13 +10,11 @@
 
         var SCROLLBAR_WIDTH = 35;
 
-        var SELECTION_TYPES = new Set([
+        var SELECTION_TYPES = [
             'NONE',
             'SINGLE',
             'MULTIPLE',
-        ]);
-
-        var selectionType = '';
+        ];
 
         var dragTypeInProgress = null;
 
@@ -32,11 +30,18 @@
             var tdTemplates = {};
 
             var rowsRenderQueue = null;
-            
-            selectionType = templateAttrs.utSelectionType || 'NONE';
-            selectionType = SELECTION_TYPES.has(selectionType.toUpperCase()) && templateAttrs.utSelection ? selectionType.toUpperCase() : 'NONE';
 
             var getSelection = $parse(templateAttrs.utSelection);
+            
+            var selectionType = 'NONE';
+            if(templateAttrs.utSelection){
+                if (templateAttrs.utSelectionType && SELECTION_TYPES.indexOf(templateAttrs.utSelectionType.toUpperCase()) !== -1) {
+                    selectionType = templateAttrs.utSelectionType.toUpperCase();
+                } else {
+                    selectionType = 'SINGLE'
+                }
+            }
+
 
             extractCellTemplates(templateElement[0]);
 
@@ -305,15 +310,24 @@
                     if (!selection) {
                         return
                     }
-                    var selectedElements = new Set(selection.map(item => rowElementByRowMap.get(item)));
+                    var selectedElements = new Set();
+                    selection
+                        .filter(function (item) {
+                            return rowElementByRowMap.has(item);
+                        })
+                        .forEach(function (item) {
+                            selectedElements.add(rowElementByRowMap.get(item))
+                        });
                     [...selectedRowElements]
-                        .filter(row => !selectedElements.has(row))
-                        .forEach(row => {
+                        .filter(function (row) {
+                            return !selectedElements.has(row);
+                        })
+                        .forEach(function (row) {
                             row.classList.remove('selected');
                         });
 
                     selectedRowElements = selectedElements;
-                    selectedRowElements.forEach(row => {
+                    selectedRowElements.forEach(function (row) {
                         row.classList.add('selected');
                     });
                 }
@@ -522,6 +536,14 @@
                 tr.style.height = '1px';
             }
 
+            function isSelectable() {
+                return selectionType !== 'NONE';
+            }
+
+            function isMultiSelect() {
+                return selectionType === 'MULTIPLE';
+            }
+
             return link;
         }
 
@@ -612,14 +634,6 @@
                 scopes[i].$destroy();
             }
             scopes.splice(0, scopes.length);
-        }
-
-        function isSelectable() {
-            return selectionType !== 'NONE';
-        }
-
-        function isMultiSelect() {
-            return selectionType === 'MULTIPLE';
         }
 
         return {
