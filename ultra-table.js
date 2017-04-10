@@ -10,11 +10,11 @@
 
         var SCROLLBAR_WIDTH = 35;
 
-        var SELECTION_TYPES = new Set([
+        var SELECTION_TYPES = [
             'NONE',
             'SINGLE',
             'MULTIPLE',
-        ]);
+        ];
 
         var dragTypeInProgress = null;
 
@@ -35,7 +35,7 @@
             
             var selectionType = 'NONE';
             if(templateAttrs.utSelection){
-                if (templateAttrs.utSelectionType && SELECTION_TYPES.has(templateAttrs.utSelectionType.toUpperCase())) {
+                if (templateAttrs.utSelectionType && SELECTION_TYPES.indexOf(templateAttrs.utSelectionType.toUpperCase()) !== -1) {
                     selectionType = templateAttrs.utSelectionType.toUpperCase();
                 } else {
                     selectionType = 'SINGLE'
@@ -310,15 +310,24 @@
                     if (!selection) {
                         return
                     }
-                    var selectedElements = new Set(selection.filter(item => rowElementByRowMap.has(item)).map(item => rowElementByRowMap.get(item)));
+                    var selectedElements = new Set();
+                    selection
+                        .filter(function (item) {
+                            return rowElementByRowMap.has(item);
+                        })
+                        .forEach(function (item) {
+                            selectedElements.add(rowElementByRowMap.get(item))
+                        });
                     [...selectedRowElements]
-                        .filter(row => !selectedElements.has(row))
-                        .forEach(row => {
+                        .filter(function (row) {
+                            return !selectedElements.has(row);
+                        })
+                        .forEach(function (row) {
                             row.classList.remove('selected');
                         });
 
                     selectedRowElements = selectedElements;
-                    selectedRowElements.forEach(row => {
+                    selectedRowElements.forEach(function (row) {
                         row.classList.add('selected');
                     });
                 }
