@@ -13,7 +13,7 @@
         var SELECTION_TYPES = [
             'NONE',
             'SINGLE',
-            'MULTIPLE',
+            'MULTIPLE'
         ];
 
         var dragTypeInProgress = null;
@@ -318,13 +318,13 @@
                         .forEach(function (item) {
                             selectedElements.add(rowElementByRowMap.get(item))
                         });
-                    [...selectedRowElements]
-                        .filter(function (row) {
-                            return !selectedElements.has(row);
-                        })
-                        .forEach(function (row) {
+
+                    selectedRowElements.forEach(function (row) {
+                        if (!selectedElements.has(row)) {
                             row.classList.remove('selected');
-                        });
+                        }
+                    });
+
 
                     selectedRowElements = selectedElements;
                     selectedRowElements.forEach(function (row) {
