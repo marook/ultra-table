@@ -202,8 +202,16 @@
                 }
                 
 
-                if(isSelectable()){
-                    var deregister = tableScope.$parent.$watchCollection(templateAttrs.utSelection, updateSelectedRowElements);
+                if (isSelectable()) {
+                    var deregister = null;
+                    if (isMultiSelect()) {
+                        deregister = tableScope.$parent.$watchCollection(templateAttrs.utSelection, updateSelectedRowElements);
+                    } else {
+                        deregister = tableScope.$parent.$watch(templateAttrs.utSelection, function (_selection_) {
+                            var selection = _selection_ ? [_selection_] : []
+                            updateSelectedRowElements(selection);
+                        });
+                    }
                     tableScope.$on('$destroy', deregister);
                 }
 
@@ -217,15 +225,21 @@
 
                     empty(tbody, tbodyScopes);
 
-                    if(tableScope.rows){
-                        for(var i = 0; i < tableScope.rows.length; ++i){
+                    if (tableScope.rows) {
+                        for (var i = 0; i < tableScope.rows.length; ++i) {
                             var row = tableScope.rows[i];
                             rowElementByRowMap.set(row, appendRow(row, tableScope, i === 0));
                         }
-                        if (tableScope.rows.length === 0){
+                        if (tableScope.rows.length === 0) {
                             appendEmptyRow(tbody, tableScope, tbodyScopes);
                         }
-                        updateSelectedRowElements(getSelection(tableScope.$parent));
+                        if (isMultiSelect()) {
+                            updateSelectedRowElements(getSelection(tableScope.$parent));
+                        } else {
+                            var _selection_ = getSelection(tableScope.$parent);
+                            var selection = _selection_ ? [_selection_] : []
+                            updateSelectedRowElements(selection);
+                        }
                     }
 
                     rowsRenderQueue.startRendering();
@@ -260,14 +274,18 @@
                                         });
                                     })
                                     .then(function () {
-                                        var selection = getSelection(tableScope.$parent);
-                                        if (selection) {
-                                            if (isMultiSelect() && event.ctrlKey) {
-                                                selection.push(row);
-                                            } else {
-                                                selection.splice(0, selection.length);
-                                                selection.push(row);
+                                        if (isMultiSelect()) {
+                                            var selection = getSelection(tableScope.$parent);
+                                            if (selection) {
+                                                if (event.ctrlKey) {
+                                                    selection.push(row);
+                                                } else {
+                                                    selection.splice(0, selection.length);
+                                                    selection.push(row);
+                                                }
                                             }
+                                        } else {
+                                            getSelection.assign(tableScope.$parent, row);
                                         }
                                     });
                             });
